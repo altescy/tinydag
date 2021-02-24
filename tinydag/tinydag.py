@@ -4,6 +4,8 @@ import logging
 
 from tinydag.node import Node
 
+logger = logging.getLogger()
+
 
 class TinyDAG:
     def __init__(self, *nodes: Node, max_workers: int = 1) -> None:
@@ -20,11 +22,11 @@ class TinyDAG:
         if not node.is_ready:
             return
 
-        logging.getLogger().info("start %s", node.name)
+        logger.info("start %s", node.name)
 
         result = node.run()
 
-        logging.getLogger().info("end %s", node.name)
+        logger.info("end %s", node.name)
 
         if not node.next_nodes:
             return
@@ -32,10 +34,7 @@ class TinyDAG:
         for next_node in node.next_nodes:
             next_node.set_input(node.name, result)
 
-        with ThreadPoolExecutor(
-                max_workers=self._max_worker,
-                thread_name_prefix="thread",
-        ) as executor:
+        with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
             for next_node in node.next_nodes:
                 executor.submit(self._execute_node_recursively, next_node)
 
@@ -59,9 +58,6 @@ class TinyDAG:
             node for node in self._nodes.values() if not node.depends
         ]
 
-        with ThreadPoolExecutor(
-                max_workers=self._max_worker,
-                thread_name_prefix="thread",
-        ) as executor:
+        with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
             for node in start_nodes:
                 executor.submit(self._execute_node_recursively, node)
