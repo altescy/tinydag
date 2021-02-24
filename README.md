@@ -6,6 +6,15 @@ TinyDAG
 TinyDAG is a simple library to execute multi-threaded DAG-tree workflows.
 
 
+## Installation
+
+```
+$ pip install git+https://github.com/altescy/tinydag.git
+```
+
+
+## Example
+
 ```python
 # main.py
 
