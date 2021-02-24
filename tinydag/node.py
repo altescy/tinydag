@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Optional
+import threading
 
 from tinydag.exceptions import NodeUnexecutedError
 
@@ -18,6 +19,7 @@ class Node:
         self._inputs: Dict[str, Any] = {}
         self._output: Optional[Any] = None
         self._is_executed = False
+        self._lock = threading.RLock()
 
     @property
     def name(self) -> str:
@@ -49,7 +51,8 @@ class Node:
         self._next_nodes.append(next_node)
 
     def set_input(self, depname: str, data: Any):
-        self._inputs[depname] = data
+        with self._lock:
+            self._inputs[depname] = data
 
     def run(self) -> Any:
         inputs: List[Any] = [
