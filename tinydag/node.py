@@ -61,8 +61,8 @@ class Node:
             if depname in self._inputs
         ]
         if len(self._inputs) != len(self._depends):
-            raise RuntimeError("numbers of required and given "
-                               "inputs is not matched")
+            raise RuntimeError("Numbers of required and given "
+                               "inputs is not matched.")
 
         self._output = self._func(*inputs)
         self._is_executed = True
