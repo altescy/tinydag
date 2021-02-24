@@ -8,9 +8,8 @@ logger = logging.getLogger()
 
 
 class TinyDAG:
-    def __init__(self, *nodes: Node, max_workers: int = 1) -> None:
+    def __init__(self, *nodes: Node) -> None:
         self._nodes = {node.name: node for node in nodes}
-        self._max_worker = max_workers
 
     def _build_dag(self):
         for node in self._nodes.values():
@@ -51,9 +50,9 @@ class TinyDAG:
 
             self._run(executor, node.next_nodes)
 
-    def run(self):
+    def run(self, max_workers: int = 1):
         self._build_dag()
 
         nodes = list(self._nodes.values())
-        with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             self._run(executor, nodes)

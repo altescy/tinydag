@@ -8,7 +8,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-dag = TinyDAG(max_workers=2)
+dag = TinyDAG()
 
 
 @dag.add_node("generate_number")
@@ -33,7 +33,7 @@ def sumup(doubled_num, squared_num):
     return doubled_num + squared_num
 
 
-dag.run()
+dag.run(max_workers=2)
 result = dag.get_output("sum")
 
 logging.info("output: %s", result)

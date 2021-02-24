@@ -23,10 +23,9 @@ def test_tinydag():
             func=lambda dbs, sqs: [x + y for x, y in zip(dbs, sqs)],
             depends=["double", "square"],
         ),
-        max_workers=2,
     )
 
-    dag.run()
+    dag.run(max_workers=2)
     result = dag.get_output("sum")
 
     assert result == [0, 3, 8, 15]
