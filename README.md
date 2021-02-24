@@ -7,7 +7,8 @@ TinyDAG is a simple library to execute multi-threaded DAG-tree workflows.
 
 
 ```python
-$ cat main.py
+# main.py
+
 import logging
 import time
 
@@ -47,7 +48,8 @@ dag.run()
 result = dag.get_output("sum")
 
 logging.info("output: %s", result)
-
+```
+```
 $ python main.py
 [ 2021-02-25 03:47:25,088 ] Start node: generate_sequence
 [ 2021-02-25 03:47:25,088 ] Finish node: generate_sequence
