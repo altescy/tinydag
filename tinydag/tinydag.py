@@ -1,5 +1,5 @@
 from typing import Any, List
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, Executor, as_completed
 import logging
 
 from tinydag.node import Node
@@ -31,22 +31,29 @@ class TinyDAG:
         node = self._nodes[name]
         return node.output
 
+    def _run(self, executor: Executor, nodes: List[Node]) -> None:
+        def _run_node_with_logging(node):
+            logger.info("Start node: %s", node.name)
+            result = node.run()
+            logger.info("Finish node: %s", node.name)
+            return result
+
+        future_to_node = {
+            executor.submit(_run_node_with_logging, node): node
+            for node in nodes if node.is_ready
+        }
+
+        for future in as_completed(future_to_node):
+            node = future_to_node[future]
+            result = future.result()
+            for next_node in node.next_nodes:
+                next_node.set_input(node.name, result)
+
+            self._run(executor, node.next_nodes)
+
     def run(self):
         self._build_dag()
+
+        nodes = list(self._nodes.values())
         with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
-
-            def _run(nodes):
-                future_to_node = {
-                    executor.submit(node.run): node
-                    for node in nodes if node.is_ready
-                }
-
-                for future in as_completed(future_to_node):
-                    node = future_to_node[future]
-                    result = future.result()
-                    for next_node in node.next_nodes:
-                        next_node.set_input(node.name, result)
-
-                    _run(node.next_nodes)
-
-            _run(self._nodes.values())
+            self._run(executor, nodes)
