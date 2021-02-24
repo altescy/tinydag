@@ -1,5 +1,5 @@
 from typing import Any, List
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 
 from tinydag.node import Node
@@ -18,26 +18,6 @@ class TinyDAG:
                 depnode = self._nodes[depnode_name]
                 depnode.add_next_node(node)
 
-    def _execute_node_recursively(self, node: Node):
-        if not node.is_ready:
-            return
-
-        logger.info("Start node: %s", node.name)
-
-        result = node.run()
-
-        logger.info("Finish node: %s", node.name)
-
-        if not node.next_nodes:
-            return
-
-        for next_node in node.next_nodes:
-            next_node.set_input(node.name, result)
-
-        with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
-            for next_node in node.next_nodes:
-                executor.submit(self._execute_node_recursively, next_node)
-
     def add_node(self, name: str, depends: List[str] = None):
         def decorator(func):
             self._nodes[name] = Node(name, func, depends)
@@ -53,11 +33,20 @@ class TinyDAG:
 
     def run(self):
         self._build_dag()
-
-        start_nodes = [
-            node for node in self._nodes.values() if not node.depends
-        ]
-
         with ThreadPoolExecutor(max_workers=self._max_worker) as executor:
-            for node in start_nodes:
-                executor.submit(self._execute_node_recursively, node)
+
+            def _run(nodes):
+                future_to_node = {
+                    executor.submit(node.run): node
+                    for node in nodes if node.is_ready
+                }
+
+                for future in as_completed(future_to_node):
+                    node = future_to_node[future]
+                    result = future.result()
+                    for next_node in node.next_nodes:
+                        next_node.set_input(node.name, result)
+
+                    _run(node.next_nodes)
+
+            _run(self._nodes.values())
