@@ -35,7 +35,8 @@ class Node:
 
     @property
     def is_ready(self) -> bool:
-        return len(self._depends) == len(self._inputs)
+        with self._lock:
+            return len(self._depends) == len(self._inputs)
 
     @property
     def is_executed(self) -> bool:
