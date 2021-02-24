@@ -49,13 +49,13 @@ result = dag.get_output("sum")
 logging.info("output: %s", result)
 
 $ python main.py
-[ 2021-02-25 01:16:48,717 ] start generate_sequence
-[ 2021-02-25 01:16:48,717 ] end generate_sequence
-[ 2021-02-25 01:16:48,717 ] start double
-[ 2021-02-25 01:16:48,718 ] start square
-[ 2021-02-25 01:16:49,719 ] end double
-[ 2021-02-25 01:16:50,719 ] end square
-[ 2021-02-25 01:16:50,720 ] start sum
-[ 2021-02-25 01:16:50,720 ] end sum
-[ 2021-02-25 01:16:50,721 ] output: [0, 4, 8, 12, 16, 20, 24, 28, 32, 36]
+[ 2021-02-25 03:47:25,088 ] Start node: generate_sequence
+[ 2021-02-25 03:47:25,088 ] Finish node: generate_sequence
+[ 2021-02-25 03:47:25,089 ] Start node: double
+[ 2021-02-25 03:47:25,089 ] Start node: square
+[ 2021-02-25 03:47:26,089 ] Finish node: double
+[ 2021-02-25 03:47:27,091 ] Finish node: square
+[ 2021-02-25 03:47:27,092 ] Start node: sum
+[ 2021-02-25 03:47:27,092 ] Finish node: sum
+[ 2021-02-25 03:47:27,093 ] output: [0, 4, 8, 12, 16, 20, 24, 28, 32, 36]
 ```
