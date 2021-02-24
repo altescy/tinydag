@@ -1,5 +1,5 @@
-from typing import Any, List
-from concurrent.futures import ThreadPoolExecutor, Executor, as_completed
+from typing import Any, Dict, List
+from concurrent.futures import ThreadPoolExecutor, Future, FIRST_COMPLETED, wait
 import logging
 
 from tinydag.node import Node
@@ -30,29 +30,42 @@ class TinyDAG:
         node = self._nodes[name]
         return node.output
 
-    def _run(self, executor: Executor, nodes: List[Node]) -> None:
+    def run(self, max_workers: int = 1):
+        self._build_dag()
+
         def _run_node_with_logging(node):
             logger.info("Start node: %s", node.name)
             result = node.run()
             logger.info("Finish node: %s", node.name)
             return result
 
-        future_to_node = {
-            executor.submit(_run_node_with_logging, node): node
-            for node in nodes if node.is_ready
-        }
+        future_to_node: Dict[Future, Node] = {}
+        todo_nodes = set(self._nodes.values())
 
-        for future in as_completed(future_to_node):
-            node = future_to_node[future]
-            result = future.result()
-            for next_node in node.next_nodes:
-                next_node.set_input(node.name, result)
-
-            self._run(executor, node.next_nodes)
-
-    def run(self, max_workers: int = 1):
-        self._build_dag()
-
-        nodes = list(self._nodes.values())
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            self._run(executor, nodes)
+            while True:
+                if not todo_nodes:
+                    break
+
+                ready_nodes = {node for node in todo_nodes if node.is_ready}
+                todo_nodes -= ready_nodes
+
+                for node in ready_nodes:
+                    future = executor.submit(_run_node_with_logging, node)
+                    future_to_node[future] = node
+
+                done, not_done = wait(
+                    future_to_node,
+                    return_when=FIRST_COMPLETED,
+                )
+
+                for future in done:
+                    node = future_to_node[future]
+                    result = future.result()
+                    for next_node in node.next_nodes:
+                        next_node.set_input(node.name, result)
+
+                future_to_node = {
+                    future: future_to_node[future]
+                    for future in not_done
+                }
