@@ -23,6 +23,7 @@ def test_tinydag():
             func=lambda dbs, sqs: [x + y for x, y in zip(dbs, sqs)],
             depends=["double", "square"],
         ),
+        max_workers=2,
     )
 
     dag.run()
