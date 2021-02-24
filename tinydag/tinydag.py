@@ -22,11 +22,11 @@ class TinyDAG:
         if not node.is_ready:
             return
 
-        logger.info("start %s", node.name)
+        logger.info("Start node: %s", node.name)
 
         result = node.run()
 
-        logger.info("end %s", node.name)
+        logger.info("Finish node: %s", node.name)
 
         if not node.next_nodes:
             return

@@ -42,7 +42,7 @@ class Node:
     @property
     def output(self) -> Any:
         if not self.is_executed:
-            raise NodeUnexecutedError(f"Node <{self.name}> does not executed.")
+            raise NodeUnexecutedError(f"Node <{self.name}> is not executed.")
         return self._output
 
     def add_next_node(self, next_node: Node) -> None:
