@@ -3,7 +3,7 @@ TinyDAG
 
 [![Actions Status](https://github.com/altescy/tinydag/workflows/CI/badge.svg)](https://github.com/altescy/tinydag/actions?query=workflow%3ACI)
 
-TinyDAG is a simple library to execute DAG-tree workflows.
+TinyDAG is a simple library to execute multi-threaded DAG-tree workflows.
 
 
 ```python
